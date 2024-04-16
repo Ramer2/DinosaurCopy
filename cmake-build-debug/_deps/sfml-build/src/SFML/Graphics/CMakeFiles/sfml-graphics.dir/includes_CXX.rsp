@@ -1,0 +1,1 @@
+-I"N:/DinosaurCopy/cmake-build-debug/_deps/sfml-src/include" -I"N:/DinosaurCopy/cmake-build-debug/_deps/sfml-src/src" -isystem "N:/DinosaurCopy/cmake-build-debug/_deps/sfml-src/extlibs/headers/stb_image" -isystem "N:/DinosaurCopy/cmake-build-debug/_deps/sfml-src/extlibs/headers/glad/include" -isystem "N:/DinosaurCopy/cmake-build-debug/_deps/sfml-src/extlibs/headers/freetype2"
