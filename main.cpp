@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 #include <SFML/Graphics.hpp>
 
+//while playing: SPRITES ARE SQUARES (I tried to trim them, really, but I couldn't make it work)
 auto main() -> int {
     auto window = sf::RenderWindow(sf::VideoMode(1000, 600), "Dinosaur",
                                    sf::Style::Default, sf::ContextSettings(0, 0, 8));
@@ -17,11 +18,12 @@ auto main() -> int {
     //random generator
     std::random_device dev;
     std::mt19937 rng(dev());
-    std::uniform_int_distribution<std::mt19937::result_type> dist3(1,3); // distribution in range [1, 3]
+    std::uniform_int_distribution<int> dist3(1,3); // distribution in range [1, 3]
+    std::uniform_int_distribution<int> dist50(-50, 50); // distribution in range [-100, 100]
 
     //constants
-    auto spawnPoint = sf::Vector2f(1100.f, 445.f);
-    auto startVel = sf::Vector2f(-4.f, 0.f);
+    auto spawnPoint = sf::Vector2f(1100.f, 415.f);
+    auto startVel = sf::Vector2f(-4.5f, 0.f);
     auto lost = false;//flag for when you lose
     auto zeroSpd = sf::Vector2f(0.f, 0.f);
 
@@ -52,45 +54,62 @@ auto main() -> int {
     resetTxt.setPosition({415.f, 340.f});
     resetTxt.setOutlineThickness(3.6);
 
+    //importing textures
+    auto dinoTexture = sf::Texture();
+    if (!dinoTexture.loadFromFile("../dino.png")) std::cout << "Error, while loading a dino file\n";
+
+    auto smallCactusTexture = sf::Texture();
+    if(!smallCactusTexture.loadFromFile("../small_cactus.png")) std::cout << "Error, while loading a small cactus file\n";
+
+    auto mediumCactusTexture = sf::Texture();
+    if(!mediumCactusTexture.loadFromFile("../medium_cactus.png")) std::cout << "Error, while loading a medium cactus file\n";
+
+    auto largeCactusTexture = sf::Texture();
+    if(!largeCactusTexture.loadFromFile("../large_cactus.png")) std::cout << "Error, while loading a medium cactus file\n";
+
     //creating shapes
     //ground, dinosaur and sun
-    auto ground = sf::RectangleShape(sf::Vector2f(1000.f, 30.f));
-    ground.setFillColor(sf::Color(244,194,140));
-    auto dinosaur = sf::RectangleShape(sf::Vector2f(40.f, 70.f));
-    dinosaur.setFillColor(sf::Color(112,178,106));
+    auto ground = sf::RectangleShape(sf::Vector2f(1000.f, 150.f));
+    ground.setFillColor(sf::Color(247, 247, 247, 255));
+    ground.setOutlineColor(sf::Color(83, 83, 83,255));
+    ground.setOutlineThickness(5.f);
+    auto dinosaur = sf::Sprite(dinoTexture);
+    dinosaur.setScale(0.7, 0.9);
     auto sun = sf::CircleShape(125.f);
-    sun.setFillColor(sf::Color::Yellow);
+    sun.setFillColor(sf::Color(247, 247, 247, 255));
     sun.setPosition(sf::Vector2f(-100.f, -100.f));
+    sun.setOutlineThickness(5.f);
+    sun.setOutlineColor(sf::Color(83, 83, 83,255));
 
     // Setting the initial position of these shapes
-    auto groundPosition = sf::Vector2f(0.f, 500.f);
+    auto groundPosition = sf::Vector2f(0.f, 490.f);
     ground.setPosition(groundPosition);
-    auto dinosaurPosition = sf::Vector2f(50.f, 430.f);
+    auto dinosaurPosition = sf::Vector2f(50.f, 400.f);
     dinosaur.setPosition(dinosaurPosition);
     auto dinosaurVel = sf::Vector2f(0.f, 0.f); //dinosaur speed (initial)
 
     //3 cacti
-    //they have three random shapes/sizes: small (40.f, 60.f), medium (60.f, 60.f) and large (80.f, 60.f)
-    auto sizes = std::vector<sf::RectangleShape>{
-        sf::RectangleShape(sf::Vector2f(40.f, 60.f)),
-        sf::RectangleShape(sf::Vector2f(60.f, 60.f)),
-        sf::RectangleShape(sf::Vector2f(80.f, 60.f)),
+    auto cacti = std::vector<sf::Sprite>{
+        sf::Sprite(smallCactusTexture),
+        sf::Sprite(mediumCactusTexture),
+        sf::Sprite(largeCactusTexture)
     };
-    //coloring shapes
-    sizes[0].setFillColor(sf::Color(64,90,61));
-    sizes[1].setFillColor(sf::Color(64,90,61));
-    sizes[2].setFillColor(sf::Color(64,90,61));
 
-    auto cactus1 = sizes[dist3(rng) % 3];
-    auto cactus2 = sizes[dist3(rng) % 3];
-    auto cactus3 = sizes[dist3(rng) % 3];
+    auto cactus1 = cacti[dist3(rng) % 3];
+    auto cactus2 = cacti[dist3(rng) % 3];
+    auto cactus3 = cacti[dist3(rng) % 3];
+
+    //scaling sprites
+    cactus1.setScale(0.7f, 0.85f);
+    cactus2.setScale(0.7f, 0.85f);
+    cactus3.setScale(0.7f, 0.85f);
 
     //cacti starting positions
-    auto cactus1pos = sf::Vector2f(1000.f, 445.f);
+    auto cactus1pos = sf::Vector2f(1000.f, 415.f);
     cactus1.setPosition(cactus1pos);
-    auto cactus2pos = sf::Vector2f(1400.f, 445.f);
+    auto cactus2pos = sf::Vector2f(1400.f, 415.f);
     cactus2.setPosition(cactus2pos);
-    auto cactus3pos = sf::Vector2f(1800.f, 445.f);
+    auto cactus3pos = sf::Vector2f(1800.f, 415.f);
     cactus3.setPosition(cactus3pos);
 
     //cacti speed & acceleration
@@ -102,11 +121,11 @@ auto main() -> int {
     while (window.isOpen()) {
         dinosaurPosition += dinosaurVel;
         dinosaur.setPosition(dinosaurPosition);
-        if (dinosaurPosition.y >= 430.f) {
-            dinosaurPosition.y = 430.f;
+        if (dinosaurPosition.y >= 410.f) {
+            dinosaurPosition.y = 410.f;
             dinosaurVel = sf::Vector2f(0.f, 0.f);
-        } else {
-            dinosaurVel += sf::Vector2f(0.f, 0.3f);
+        } else if (!lost) {
+            dinosaurVel += sf::Vector2f(0.f, 0.25f);
         }
 
 //        checking collision:
@@ -127,7 +146,7 @@ auto main() -> int {
                 window.close();
             }
             if (event.key.code == sf::Keyboard::Up) {
-                if (dinosaurPosition.y >= 430.f && !lost) {
+                if (dinosaurPosition.y >= 400.f && !lost) {
                     dinosaurVel = sf::Vector2f(0.f, -8.f);
                 }
             }
@@ -138,10 +157,11 @@ auto main() -> int {
                         cactus1Vel = startVel;
                         cactus2Vel = startVel;
                         cactus3Vel = startVel;
-                        cactus1pos = sf::Vector2f(1000.f, 445.f);
-                        cactus2pos = sf::Vector2f(1400.f, 445.f);
-                        cactus3pos = sf::Vector2f(1800.f, 445.f);
+                        cactus1pos = sf::Vector2f(1000.f, 415.f);
+                        cactus2pos = sf::Vector2f(1400.f, 415.f);
+                        cactus3pos = sf::Vector2f(1800.f, 415.f);
                         cactiAcc = sf::Vector2f(-0.001, 0.f);
+                        dinosaurPosition = sf::Vector2f(50.f, 410.f);
                         score.setString("");
                         begin = std::chrono::high_resolution_clock::now();
                         lost = false;
@@ -149,6 +169,13 @@ auto main() -> int {
                 }
             }
         }
+
+//        Easter Egg: uncomment lines [156, 160] to play special mode))
+//        if (cactus1Vel.x >= -5.5f) {
+//            cactus1pos.x += dist100(rng);
+//            cactus2pos.x += dist100(rng);
+//            cactus3pos.x += dist100(rng);
+//        }
 
         //check for max speed: -8.f
         if (cactus1Vel.x == -7.f){
@@ -164,31 +191,34 @@ auto main() -> int {
         cactus1.setPosition(cactus1pos);
         if (cactus1pos.x < -100) {
             cactus1pos = spawnPoint;
-            cactus1 = sizes[dist3(rng) % 3];
+            cactus1pos.x += dist50(rng);
+            cactus1 = cacti[dist3(rng) % 3];
         }
 
         cactus2pos += cactus2Vel;
         cactus2.setPosition(cactus2pos);
         if (cactus2pos.x < -100) {
             cactus2pos = spawnPoint;
-            cactus2 = sizes[dist3(rng) % 3];
+            cactus2pos.x += dist50(rng);
+            cactus2 = cacti[dist3(rng) % 3];
         }
 
         cactus3pos += cactus3Vel;
         cactus3.setPosition(cactus3pos);
         if (cactus3pos.x < -100) {
             cactus3pos = spawnPoint;
-            cactus3 = sizes[dist3(rng) % 3];
+            cactus3pos.x += dist50(rng);
+            cactus3 = cacti[dist3(rng) % 3];
         }
 
         // Drawing the shapes on the screen
-        window.clear(sf::Color(116,149,179));//background
+        window.clear(sf::Color(247,247,247,255));//background
         window.draw(ground);
+        window.draw(dinosaur);
         window.draw(cactus1);
         window.draw(cactus2);
         window.draw(cactus3);
         window.draw(text);
-        window.draw(dinosaur);
         if (lost) {
             window.draw(youLost);
             window.draw(resetBtn);
@@ -200,7 +230,7 @@ auto main() -> int {
         if (!lost){
             auto end = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-            int val = duration.count() / 1000;
+            auto val = duration.count() / 1000;
             score.setString(std::to_string(val));
         }
 
@@ -208,9 +238,3 @@ auto main() -> int {
         window.display();
     }
 }
-
-//speed: begin with -4.f, and move with -0.001.f steps up to -7.f (?)
-//TODO: polish some stuff (text, colors)
-//TODO: add random distances between cacti (kinda works with acceleration, maybe add some random distance between cacti)
-//TODO: better shapes (optional). You can make this game about a slime and not a dinosaur
-//TODO: improve graphics
